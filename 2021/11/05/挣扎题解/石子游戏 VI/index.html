@@ -1,26 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang=zh>
 <head>
-  <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
-<meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.1">
-  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
-  <link rel="mask-icon" href="/images/logo.svg" color="#222">
-
-<link rel="stylesheet" href="/css/main.css">
-
-<link rel="stylesheet" href="//fonts.loli.net/css?family=Noto Sans SC:300,300italic,400,400italic,700,700italic|Noto Serif SC:300,300italic,400,400italic,700,700italic|Fira:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
-<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
-
-<script id="hexo-configurations">
-    var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"hide","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
-  </script>
-
-  <meta name="description" content="本题的学校OJ地址为小蓝鲸的卡牌游戏, 力扣原题地址是石子游戏. 题目要求是要给出最后的胜负. 其实这个要求就暗含着需要我们推出最佳策略, 之后再不断执行这个策略直到游戏结束判断胜者. 拿到这个题一开始想的是这张卡片对我的价值和对敌人的价值都得考虑, 因为如果对我的价值远高于敌人, 那我拿走了显然很好, 因为我的分变多了; 反之如果对敌人价值很高, 我拿走了也很好, 因为我拿走了他就拿不到了, 他">
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="本题的学校OJ地址为小蓝鲸的卡牌游戏, 力扣原题地址是石子游戏. 题目要求是要给出最后的胜负. 其实这个要求就暗含着需要我们推出最佳策略, 之后再不断执行这个策略直到游戏结束判断胜者. 拿到这个题一开始想的是这张卡片对我的价值和对敌人的价值都得考虑, 因为如果对我的价值远高于敌人, 那我拿走了显然很好, 因为我的分变多了; 反之如果对敌人价值很高, 我拿走了也很好, 因为我拿走了他就拿不到了, 他">
 <meta property="og:type" content="article">
 <meta property="og:title" content="石子游戏VI">
 <meta property="og:url" content="http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/index.html">
@@ -32,52 +18,38 @@
 <meta property="article:author" content="Ushio">
 <meta property="article:tag" content="私人">
 <meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>石子游戏VI</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
 
-<link rel="canonical" href="http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/">
-
-
-<script id="page-configurations">
-  // https://hexo.io/docs/variables.html
-  CONFIG.page = {
-    sidebar: "",
-    isHome : false,
-    isPost : true,
-    lang   : 'zh-CN'
-  };
-</script>
-
-  <title>石子游戏VI | 这是什么地方</title>
-  
-
-
-
-
-
-
-  <noscript>
-  <style>
-  .use-motion .brand,
-  .use-motion .menu-item,
-  .sidebar-inner,
-  .use-motion .post-block,
-  .use-motion .pagination,
-  .use-motion .comments,
-  .use-motion .post-header,
-  .use-motion .post-body,
-  .use-motion .collection-header { opacity: initial; }
-
-  .use-motion .site-title,
-  .use-motion .site-subtitle {
-    opacity: initial;
-    top: initial;
-  }
-
-  .use-motion .logo-line-before i { left: initial; }
-  .use-motion .logo-line-after i { right: initial; }
-  </style>
-</noscript>
-
-<style>mjx-container[jax="SVG"] {
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 5.4.1"><style>mjx-container[jax="SVG"] {
   direction: ltr;
 }
 
@@ -191,132 +163,103 @@ mjx-container[display="true"] + br {
 }
 </style></head>
 
-<body itemscope itemtype="http://schema.org/WebPage">
-  <div class="container use-motion">
-    <div class="headband"></div>
+<body class="max-width mx-auto px3 ltr">    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%A7%BB%E9%99%A4%E6%9C%80%E5%A4%9A%E7%9A%84%E5%90%8C%E8%A1%8C%E6%88%96%E5%90%8C%E5%88%97%E7%9F%B3%E5%A4%B4/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E6%9C%80%E5%BA%95%E5%B1%82%E6%9C%80%E5%B7%A6%E8%BE%B9%E8%8A%82%E7%82%B9/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&text=石子游戏VI"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&title=石子游戏VI"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&is_video=false&description=石子游戏VI"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=石子游戏VI&body=Check out this article: http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&title=石子游戏VI"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&title=石子游戏VI"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&title=石子游戏VI"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&title=石子游戏VI"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&name=石子游戏VI&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&t=石子游戏VI"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
 
-    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
-      <div class="header-inner"><div class="site-brand-container">
-  <div class="site-nav-toggle">
-    <div class="toggle" aria-label="切换导航栏">
-      <span class="toggle-line toggle-line-first"></span>
-      <span class="toggle-line toggle-line-middle"></span>
-      <span class="toggle-line toggle-line-last"></span>
     </div>
-  </div>
-
-  <div class="site-meta">
-
-    <a href="/" class="brand" rel="start">
-      <span class="logo-line-before"><i></i></span>
-      <h1 class="site-title">这是什么地方</h1>
-      <span class="logo-line-after"><i></i></span>
-    </a>
-      <p class="site-subtitle" itemprop="description">乱七八糟的文章都丢这里了</p>
-  </div>
-
-  <div class="site-nav-right">
-    <div class="toggle popup-trigger">
+    <div id="toc">
+      
     </div>
-  </div>
+  </span>
 </div>
 
-
-
-
-<nav class="site-nav">
-  <ul id="menu" class="main-menu menu">
-        <li class="menu-item menu-item-home">
-
-    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
-
-  </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
-
-  </li>
-        <li class="menu-item menu-item-archives">
-
-    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
-
-  </li>
-  </ul>
-</nav>
-
-
-
-
-</div>
-    </header>
-
     
-  <div class="back-to-top">
-    <i class="fa fa-arrow-up"></i>
-    <span>0%</span>
-  </div>
-
-
-    <main class="main">
-      <div class="main-inner">
-        <div class="content-wrap">
-          
-
-          <div class="content post posts-expand">
-            
-
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
     
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/">
+    <h1 class="posttitle" itemprop="name headline">
+        石子游戏VI
+    </h1>
 
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/roll.jpg">
-      <meta itemprop="name" content="Ushio">
-      <meta itemprop="description" content="吐黑泥的地方🤗">
-    </span>
 
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="这是什么地方">
-    </span>
-      <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          石子游戏VI
-        </h1>
 
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-              
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">Ushio</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2021-11-05T04:42:44.000Z" itemprop="datePublished">2021-11-05</time>
+        
+      
+    </div>
 
-              <time title="创建时间：2021-11-05 12:42:44 / 修改时间：13:13:56" itemprop="dateCreated datePublished" datetime="2021-11-05T12:42:44+08:00">2021-11-05</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-folder"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/" itemprop="url" rel="index"><span itemprop="name">挣扎题解</span></a>
-                </span>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
 
       
-        <p>本题的学校OJ地址为<a target="_blank" rel="noopener" href="http://114.212.80.11:8080/contest/28/problem/77">小蓝鲸的卡牌游戏</a>,
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/">挣扎题解</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>本题的学校OJ地址为<a target="_blank" rel="noopener" href="http://114.212.80.11:8080/contest/28/problem/77">小蓝鲸的卡牌游戏</a>,
 力扣原题地址是<a target="_blank" rel="noopener" href="https://leetcode-cn.com/problems/stone-game-vi/">石子游戏</a>.
 题目要求是要给出最后的胜负. 其实这个要求就暗含着需要我们推出最佳策略,
 之后再不断执行这个策略直到游戏结束判断胜者.</p>
@@ -341,256 +284,153 @@ A对B的分差可以计算得到, 为</p>
 每次抽取和最大且未被抽走的卡片即可.</p>
 <p>最后贴个自己写的垃圾代码, 修修补补观赏性很差TAT. <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">pair</span> {</span></span><br><span class="line">  <span class="keyword">int</span> data;</span><br><span class="line">  <span class="keyword">int</span> index;</span><br><span class="line">} pair;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">quick_sort</span><span class="params">(pair s[], <span class="keyword">int</span> l, <span class="keyword">int</span> r)</span> </span>{</span><br><span class="line">  <span class="keyword">if</span> (l &lt; r) {</span><br><span class="line">    <span class="keyword">int</span> i = l, j = r;</span><br><span class="line">    pair x = s[l];</span><br><span class="line">    <span class="keyword">while</span> (i &lt; j) {</span><br><span class="line">      <span class="keyword">while</span> (i &lt; j &amp;&amp; s[j].data &lt; x.data)</span><br><span class="line">        j--;</span><br><span class="line">      <span class="keyword">if</span> (i &lt; j)</span><br><span class="line">        s[i++] = s[j];</span><br><span class="line"></span><br><span class="line">      <span class="keyword">while</span> (i &lt; j &amp;&amp; s[i].data &gt;= x.data)</span><br><span class="line">        i++;</span><br><span class="line">      <span class="keyword">if</span> (i &lt; j)</span><br><span class="line">        s[j--] = s[i];</span><br><span class="line">    }</span><br><span class="line">    s[i] = x;</span><br><span class="line">    <span class="built_in">quick_sort</span>(s, l, i - <span class="number">1</span>); </span><br><span class="line">    <span class="built_in">quick_sort</span>(s, i + <span class="number">1</span>, r);</span><br><span class="line">  }</span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>{</span><br><span class="line">  <span class="keyword">int</span> N;</span><br><span class="line">  <span class="built_in">scanf</span>(<span class="string">"%d"</span>, &amp;N);</span><br><span class="line">  pair aval[N];</span><br><span class="line">  pair bval[N];</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) {</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">"%d"</span>, &amp;aval[i].data);</span><br><span class="line">    aval[i].index = i;</span><br><span class="line">  }</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) {</span><br><span class="line">    <span class="keyword">int</span> tmp;</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">"%d"</span>, &amp;bval[i].data);</span><br><span class="line">    bval[i].index = i;</span><br><span class="line">  }</span><br><span class="line">  pair all[N];</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; N; i++) {</span><br><span class="line">    all[i].data = aval[i].data + bval[i].data;</span><br><span class="line">    all[i].index = i;</span><br><span class="line">  }</span><br><span class="line">  <span class="built_in">quick_sort</span>(all, <span class="number">0</span>, N - <span class="number">1</span>);</span><br><span class="line">  <span class="keyword">int</span> playerA = <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">int</span> used[N];</span><br><span class="line">  <span class="built_in">memset</span>(used, <span class="number">0</span>, N * <span class="built_in"><span class="keyword">sizeof</span></span>(<span class="keyword">int</span>));</span><br><span class="line">  <span class="keyword">int</span> allUsed = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">int</span> indexa = <span class="number">0</span>, indexb = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">int</span> ascore = <span class="number">0</span>, bscore = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">while</span> (allUsed != N) {</span><br><span class="line">    <span class="keyword">if</span> (playerA) {</span><br><span class="line">      <span class="keyword">while</span> (used[all[indexa].index]) {</span><br><span class="line">        indexa++;</span><br><span class="line">      }</span><br><span class="line">      ascore += aval[all[indexa].index].data;</span><br><span class="line">      used[all[indexa].index] = <span class="number">1</span>;</span><br><span class="line">      allUsed++;</span><br><span class="line">    } <span class="keyword">else</span> {</span><br><span class="line">      <span class="keyword">while</span> (used[all[indexb].index]) {</span><br><span class="line">        indexb++;</span><br><span class="line">      }</span><br><span class="line">      bscore += bval[all[indexb].index].data;</span><br><span class="line">      used[all[indexb].index] = <span class="number">1</span>;</span><br><span class="line">      allUsed++;</span><br><span class="line">    }</span><br><span class="line">    playerA = !playerA;</span><br><span class="line">  }</span><br><span class="line">  <span class="keyword">if</span> (ascore &gt; bscore) {</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"1"</span>);</span><br><span class="line">  } <span class="keyword">else</span> <span class="keyword">if</span> (ascore &lt; bscore) {</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"-1"</span>);</span><br><span class="line">  } <span class="keyword">else</span> {</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">"0"</span>);</span><br><span class="line">  }</span><br><span class="line">}</span><br></pre></td></tr></table></figure></p>
 
-    </div>
-
-    
-    
-    
-
-      <footer class="post-footer">
-
-        
-
-
-        
-    <div class="post-nav">
-      <div class="post-nav-item">
-    <a href="/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E6%9C%80%E5%BA%95%E5%B1%82%E6%9C%80%E5%B7%A6%E8%BE%B9%E8%8A%82%E7%82%B9/" rel="prev" title="最底层最左边节点">
-      <i class="fa fa-chevron-left"></i> 最底层最左边节点
-    </a></div>
-      <div class="post-nav-item">
-    <a href="/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%A7%BB%E9%99%A4%E6%9C%80%E5%A4%9A%E7%9A%84%E5%90%8C%E8%A1%8C%E6%88%96%E5%90%8C%E5%88%97%E7%9F%B3%E5%A4%B4/" rel="next" title="移除最多的同行或同列石头">
-      移除最多的同行或同列石头 <i class="fa fa-chevron-right"></i>
-    </a></div>
-    </div>
-      </footer>
-    
-  </article>
-  
-  
-  
-
-
-
-          </div>
-          
-
-<script>
-  window.addEventListener('tabs:register', () => {
-    let { activeClass } = CONFIG.comments;
-    if (CONFIG.comments.storage) {
-      activeClass = localStorage.getItem('comments_active') || activeClass;
-    }
-    if (activeClass) {
-      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
-      if (activeTab) {
-        activeTab.click();
-      }
-    }
-  });
-  if (CONFIG.comments.storage) {
-    window.addEventListener('tabs:click', event => {
-      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
-      let commentClass = event.target.classList[1];
-      localStorage.setItem('comments_active', commentClass);
-    });
-  }
-</script>
-
-        </div>
-          
-  
-  <div class="toggle sidebar-toggle">
-    <span class="toggle-line toggle-line-first"></span>
-    <span class="toggle-line toggle-line-middle"></span>
-    <span class="toggle-line toggle-line-last"></span>
   </div>
+</article>
 
-  <aside class="sidebar">
-    <div class="sidebar-inner">
 
-      <ul class="sidebar-nav motion-element">
-        <li class="sidebar-nav-toc">
-          文章目录
-        </li>
-        <li class="sidebar-nav-overview">
-          站点概览
-        </li>
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+         
+          <li><a href="/categories/">分类</a></li>
+        
       </ul>
+    </div>
 
-      <!--noindex-->
-      <div class="post-toc-wrap sidebar-panel">
-      </div>
-      <!--/noindex-->
+    <div id="toc-footer" style="display: none">
+      
+    </div>
 
-      <div class="site-overview-wrap sidebar-panel">
-        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="Ushio"
-      src="/images/roll.jpg">
-  <p class="site-author-name" itemprop="name">Ushio</p>
-  <div class="site-description" itemprop="description">吐黑泥的地方🤗</div>
-</div>
-<div class="site-state-wrap motion-element">
-  <nav class="site-state">
-      <div class="site-state-item site-state-posts">
-          <a href="/archives/">
-        
-          <span class="site-state-item-count">11</span>
-          <span class="site-state-item-name">日志</span>
-        </a>
-      </div>
-      <div class="site-state-item site-state-categories">
-            <a href="/categories/">
-          
-        <span class="site-state-item-count">3</span>
-        <span class="site-state-item-name">分类</span></a>
-      </div>
-  </nav>
-</div>
-  <div class="links-of-author motion-element">
-      <span class="links-of-author-item">
-        <a href="https://github.com/UshioA" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;UshioA" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
-      </span>
-      <span class="links-of-author-item">
-        <a href="mailto:shiosshio@outlook.com" title="E-Mail → mailto:shiosshio@outlook.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
-      </span>
-  </div>
-
-
-
-      </div>
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&text=石子游戏VI"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&title=石子游戏VI"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&is_video=false&description=石子游戏VI"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=石子游戏VI&body=Check out this article: http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&title=石子游戏VI"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&title=石子游戏VI"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&title=石子游戏VI"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&title=石子游戏VI"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&name=石子游戏VI&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/2021/11/05/%E6%8C%A3%E6%89%8E%E9%A2%98%E8%A7%A3/%E7%9F%B3%E5%AD%90%E6%B8%B8%E6%88%8F%20VI/&t=石子游戏VI"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
 
     </div>
-  </aside>
-  <div id="sidebar-dimmer"></div>
 
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
 
-      </div>
-    </main>
-
-    <footer class="footer">
-      <div class="footer-inner">
-        
-
-        
-
-<div class="copyright">
-  
-  &copy; 
-  <span itemprop="copyrightYear">2022</span>
-  <span class="with-love">
-    <i class="fa fa-heart"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">Ushio</span>
+  </div>
 </div>
-  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
-  </div>
 
         
-
-
-
-
-
-
-
-
-      </div>
-    </footer>
-  </div>
-
-  
-  <script src="/lib/anime.min.js"></script>
-  <script src="/lib/velocity/velocity.min.js"></script>
-  <script src="/lib/velocity/velocity.ui.min.js"></script>
-
-<script src="/js/utils.js"></script>
-
-<script src="/js/motion.js"></script>
-
-
-<script src="/js/schemes/muse.js"></script>
-
-
-<script src="/js/next-boot.js"></script>
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-  
-      
-
-<script>
-  if (typeof MathJax === 'undefined') {
-    window.MathJax = {
-      loader: {
-        source: {
-          '[tex]/amsCd': '[tex]/amscd',
-          '[tex]/AMScd': '[tex]/amscd'
-        }
-      },
-      tex: {
-        inlineMath: {'[+]': [['$', '$']]},
-        tags: 'ams'
-      },
-      options: {
-        renderActions: {
-          findScript: [10, doc => {
-            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
-              const display = !!node.type.match(/; *mode=display/);
-              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
-              const text = document.createTextNode('');
-              node.parentNode.replaceChild(text, node);
-              math.start = {node: text, delim: '', n: 0};
-              math.end = {node: text, delim: '', n: 0};
-              doc.math.push(math);
-            });
-          }, '', false],
-          insertedScript: [200, () => {
-            document.querySelectorAll('mjx-container').forEach(node => {
-              let target = node.parentNode;
-              if (target.nodeName.toLowerCase() === 'li') {
-                target.parentNode.classList.add('has-jax');
-              }
-            });
-          }, '', false]
-        }
-      }
-    };
-    (function () {
-      var script = document.createElement('script');
-      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
-      script.defer = true;
-      document.head.appendChild(script);
-    })();
-  } else {
-    MathJax.startup.document.state(0);
-    MathJax.texReset();
-    MathJax.typeset();
-  }
-</script>
-
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
     
+    
+    2022-2064
+    Ushio
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
 
   
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
 
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 </body>
 </html>
