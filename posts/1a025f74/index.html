@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="Context可靠程序的大规模生产是将计算机应用于当今具有挑战性的问题的基本要求之一。现行的方法基于测试, 工作焦点在选择数据集, 但无法证明程序是正确的. 一劳永逸的程序证明存在难以在短期内克服的困难, 所以难以应用到实际. Objectives这篇文章的目标是设计在这两个极端中的一个实际的程序测试方法(符号执行). Methods向程序提供代表任意值的符号值而不是真实的输入, 随后”正常地”执">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Structured Abstract: Symbolic Execution">
+<meta property="og:url" content="http://example.com/posts/1a025f74/">
+<meta property="og:site_name" content="？">
+<meta property="og:description" content="Context可靠程序的大规模生产是将计算机应用于当今具有挑战性的问题的基本要求之一。现行的方法基于测试, 工作焦点在选择数据集, 但无法证明程序是正确的. 一劳永逸的程序证明存在难以在短期内克服的困难, 所以难以应用到实际. Objectives这篇文章的目标是设计在这两个极端中的一个实际的程序测试方法(符号执行). Methods向程序提供代表任意值的符号值而不是真实的输入, 随后”正常地”执">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-09-20T14:17:57.000Z">
+<meta property="article:modified_time" content="2024-09-20T14:19:54.882Z">
+<meta property="article:author" content="Ushio">
+<meta property="article:tag" content="私人">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Structured Abstract: Symbolic Execution</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/posts/f945a566/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/posts/1a025f74/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/posts/1a025f74/&text=Structured Abstract: Symbolic Execution"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/posts/1a025f74/&title=Structured Abstract: Symbolic Execution"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/posts/1a025f74/&is_video=false&description=Structured Abstract: Symbolic Execution"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Structured Abstract: Symbolic Execution&body=Check out this article: http://example.com/posts/1a025f74/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/posts/1a025f74/&title=Structured Abstract: Symbolic Execution"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/posts/1a025f74/&title=Structured Abstract: Symbolic Execution"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/posts/1a025f74/&title=Structured Abstract: Symbolic Execution"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/posts/1a025f74/&title=Structured Abstract: Symbolic Execution"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/posts/1a025f74/&name=Structured Abstract: Symbolic Execution&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/posts/1a025f74/&t=Structured Abstract: Symbolic Execution"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Context"><span class="toc-number">1.</span> <span class="toc-text">Context</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Objectives"><span class="toc-number">2.</span> <span class="toc-text">Objectives</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Methods"><span class="toc-number">3.</span> <span class="toc-text">Methods</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Results"><span class="toc-number">4.</span> <span class="toc-text">Results</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-number">5.</span> <span class="toc-text">Conclusion</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Comments"><span class="toc-number">6.</span> <span class="toc-text">Comments</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Structured Abstract: Symbolic Execution
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">Ushio</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2024-09-20T14:17:57.000Z" class="dt-published" itemprop="datePublished">2024-09-20</time>
+        
+        (Updated: <time datetime="2024-09-20T14:19:54.882Z" class="dt-updated" itemprop="dateModified">2024-09-20</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="Context"><a href="#Context" class="headerlink" title="Context"></a>Context</h2><p>可靠程序的大规模生产是将计算机应用于当今具有挑战性的问题的基本要求之一。现行的方法基于测试, 工作焦点在选择数据集, 但无法证明程序是正确的. 一劳永逸的程序证明存在难以在短期内克服的困难, 所以难以应用到实际.</p>
+<h2 id="Objectives"><a href="#Objectives" class="headerlink" title="Objectives"></a>Objectives</h2><p>这篇文章的目标是设计在这两个极端中的一个实际的程序测试方法(符号执行).</p>
+<h2 id="Methods"><a href="#Methods" class="headerlink" title="Methods"></a>Methods</h2><p>向程序提供代表任意值的<code>符号值</code>而不是真实的输入, 随后”正常地”执行程序, 唯一的区别是, 程序里的值是在输入符号上的公式(在这篇paper中被限制为整数的多项式). 程序执行的每个结果会对应到一大类普通的测试数据. 结果可以之后检查是否满足程序员的期望.</p>
+<p>符号执行是由普通执行通过将执行语义扩展到符号上扩展而来. 作者在简化的假设下讨论了符号执行. 符号值全部通过输入来引入. 表达式的计算通过将变量值替换成对应的符号值自然地扩展了. goto语句不需要任何更改. 通过将<code>pc</code>引入执行状态来扩展定义if语句的执行语义. <code>pc</code>是在符号输入上的一个布尔表达式, 不包含任何程序内的变量. <code>pc</code>是为了以某个路径运行, 程序必须满足的特性. 遇见if语句时, 通过<strong>当前</strong><code>pc</code>和if包含的表达式q的关系, 来确定走哪条路径或是分裂执行(forking execution), 同时更新<code>pc</code>.</p>
+<p>作者实现了一个符号执行工具EFFIGY, 它解释执行一个比上面的假设更复杂的PL/I风格语言, 提供了常规的debugger功能. 作者展示了如何利用这些功能处理符号执行中比较棘手的问题, 例如无限执行树问题.</p>
+<h2 id="Results"><a href="#Results" class="headerlink" title="Results"></a>Results</h2><p>作者在论文中给出了对于多个实际程序，EFFIGY的处理. EFFIGY提供了标准的debugger功能, 并能使用符号解释执行程序, 并将变量用符号上的整数多项式表示. 对于执行树无限的程序, EFFIGY能利用状态保存和恢复, 交互式地探索不同的执行路径. 这证明了作者所提出的测试方法是实际有效的.</p>
+<p>利用EFFIGY提供的PROVE,ASSERT和ASSUME语句, 可以验证和证明程序的性质.</p>
+<p>也存在一些不足. 例如, 对数组的处理天然的存在模糊性, 机器运算的离散性和不精确性(溢出)会违反可交换性, 使一些优化无法进行. 一个自动推导因为能力限制会错误的认为一些条件无法确定, 导致系统沿着一条和真实世界完全不一样的路径执行.</p>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>作者提出符号执行的技术, 能用符号化的输入代替真实数据的输入执行程序, 用一组符号值代表一类真实的测试数据. 作者实现了EFFIGY交互式符号执行工具, 提供了标准debugger功能, 能在一个简单的语言上进行测试, 证明正确性等操作. 但符号执行仍然存在执行树无限, 内存地址引用模糊性, 计算溢出导致违背可交换性等等问题, 使其仍然只是较为理想情况下的工具.</p>
+<h2 id="Comments"><a href="#Comments" class="headerlink" title="Comments"></a>Comments</h2><p>这篇文章是最早的符号执行的文章, 其中提到的符号执行由于路径爆炸问题、约束求解困难集内存建模等问题, 难以在现实中达到很好的效果.</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Context"><span class="toc-number">1.</span> <span class="toc-text">Context</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Objectives"><span class="toc-number">2.</span> <span class="toc-text">Objectives</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Methods"><span class="toc-number">3.</span> <span class="toc-text">Methods</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Results"><span class="toc-number">4.</span> <span class="toc-text">Results</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Conclusion"><span class="toc-number">5.</span> <span class="toc-text">Conclusion</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Comments"><span class="toc-number">6.</span> <span class="toc-text">Comments</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://example.com/posts/1a025f74/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://example.com/posts/1a025f74/&text=Structured Abstract: Symbolic Execution"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://example.com/posts/1a025f74/&title=Structured Abstract: Symbolic Execution"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://example.com/posts/1a025f74/&is_video=false&description=Structured Abstract: Symbolic Execution"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Structured Abstract: Symbolic Execution&body=Check out this article: http://example.com/posts/1a025f74/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://example.com/posts/1a025f74/&title=Structured Abstract: Symbolic Execution"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://example.com/posts/1a025f74/&title=Structured Abstract: Symbolic Execution"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://example.com/posts/1a025f74/&title=Structured Abstract: Symbolic Execution"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://example.com/posts/1a025f74/&title=Structured Abstract: Symbolic Execution"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://example.com/posts/1a025f74/&name=Structured Abstract: Symbolic Execution&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://example.com/posts/1a025f74/&t=Structured Abstract: Symbolic Execution"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2024-2064
+    Ushio
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
